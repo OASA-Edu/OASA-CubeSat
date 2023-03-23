@@ -11,10 +11,12 @@
 #define MOTOR_IN1_PIN          5
 #define MOTOR_IN2_PIN          6
 
-unsigned long prev_t = 0;
+
+// Hint : initial all variables 
+unsigned long prev_t = 0; // previous time
 unsigned long control_time = 50;  // run every ms 
 unsigned long solenoid_t = 0;
-const unsigned long solenoid_timer = 200; //500 // solenoid active duration
+const unsigned long solenoid_timer = 200; // solenoid active duration
 bool start_solenoid_timer = false;
 
 byte battery_voltage_sensor = 0;
@@ -41,48 +43,46 @@ void setup() {
 
 void loop() {
   unsigned long cur_t = millis();
-  if (cur_t - prev_t >= control_time) {
+  if (cur_t - prev_t >= control_time) { // refresh data in every ms 
     prev_t = cur_t;
     battery_voltage_sensor = map(analogRead(BATTERY_VOLTAGE_PIN),0,1023,0,255);
-    light_sensor1 = map(analogRead(LIGHT_SENSOR1_PIN),0,1023,0,255);
-    light_sensor2 = map(analogRead(LIGHT_SENSOR2_PIN),0,1023,0,255);
-    light_sensor3 = map(analogRead(LIGHT_SENSOR3_PIN),0,1023,0,255);
-    light_sensor4 = map(analogRead(LIGHT_SENSOR4_PIN),0,1023,0,255);
-
-    set_motor(motor_spd, motor_dir);
+    //TODO: function of configure light read
+    
+    // store output of light sensor 1 to light_sensor1 and set the range between 0 to 255
+    // store output of light sensor 2 to light_sensor2 and set the range between 0 to 255
+    // store output of light sensor 3 to light_sensor3 and set the range between 0 to 255
+    // store output of light sensor 4 to light_sensor4 and set the range between 0 to 255
 
     if(is_deploy) {
-      digitalWrite(SOLENOID_PIN,HIGH);
-      if (!start_solenoid_timer) {
-        Serial.println("Solenoid active");
-        solenoid_t = cur_t;
-        start_solenoid_timer = true;
-      }
-      if (start_solenoid_timer && cur_t - solenoid_t >= solenoid_timer) {
-        digitalWrite(SOLENOID_PIN,LOW);
-        Serial.println("Solenoid inactive");
-        is_deploy = false;
-        start_solenoid_timer = false;
-      }
+       //TODO: function when click 'Deploy'
+       //Aims: Deploy Cubesat when click 'Deploy' by control solenoid
+       
+       // set solenoid pin to high
+       // if solenoid not activate yet (Hint: status of start_solenoid_timer) -> 
+       // return solenoid_t is equal to current time
+       // and then start to count solenoid time (Hint: status of start_solenoid_timer )
+      
+       //if solenoid activated and solenoid active duration >= default solenoid active duration (solenoid_timer) ->
+       //then set solenoid pin to low
+       // and then set is_deploy flag to disable and 
+       //and then stop to count solenoid time (Hint: status of start_solenoid_timer )
+      
     } 
 
-    if (is_light_track) {
-      //TODO: function for students to implement
-      light_left = max(light_sensor1,light_sensor2); //return max of 1/2
-      light_right =  max(light_sensor3,light_sensor4); //return max of 3/4
-      byte range = 150; //threshold to rotate the CubeSat
-      int track_speed = 80; //speed of rotate the CubeSat
-      if (light_left - light_right > range && light_left > 800) { //if left side brighter
-        set_motor(track_speed, 1); //turn left
-      } else if (light_right - light_left > range && light_right > 800) { //if right side brighter
-        set_motor(track_speed, 0); //turn right
-      } else {
-        set_motor(0, 0); //stay
+    if (is_light_track) { 
+      //TODO: function when click 'Light Tracking'
+      //Aims: Tracking light source and rotate Cubesat front to light source
+      
+      //Hint : return max value between 1/2 LIGHT SENSOR 
+      //Hint : return max value between 3/4 LIGHT SENSOR 
+      //Hint : threshold to rotate the CubeSat
+      //Hint : speed of rotate the CubeSat
+      //Hint : if left side brighter -> turn left
+      //Hint : if right side brighter -> turn right
+      //Hint : else -> stay
       }
-    }
-
-  }
-}
+    
+}}
 
 void requestEvent() {
   Wire.write(battery_voltage_sensor);
@@ -102,7 +102,10 @@ void receiveEvent(int howMany) {
         break;
       case '^':
         is_light_track = !is_light_track;
-        if (!is_light_track) set_motor(0, 0);
+        if (!is_light_track) {
+          digitalWrite(MOTOR_IN1_PIN, LOW);
+          digitalWrite(MOTOR_IN2_PIN, LOW);
+          }
         Serial.print("Light tracking: ");
         Serial.println(is_light_track ? "ON" : "OFF");
         break;
@@ -118,18 +121,4 @@ void receiveEvent(int howMany) {
   }
   motor_spd = Wire.read();
   Serial.println(motor_spd);
-}
-
-void set_motor(int spd, bool dir) {
-  if (spd == 0) {
-    digitalWrite(MOTOR_IN1_PIN, LOW);
-    digitalWrite(MOTOR_IN2_PIN, LOW);
-  } else if (dir) {
-    digitalWrite(MOTOR_IN1_PIN, HIGH);
-    digitalWrite(MOTOR_IN2_PIN, LOW);
-  } else if (!dir) {
-    digitalWrite(MOTOR_IN1_PIN, LOW);
-    digitalWrite(MOTOR_IN2_PIN, HIGH);
-  }
-  analogWrite(MOTOR_PWM_PIN, spd);
 }
