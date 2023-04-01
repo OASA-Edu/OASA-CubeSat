@@ -53,6 +53,8 @@ void loop() {
     // store output of light sensor 3 to light_sensor3 and set the range between 0 to 255
     // store output of light sensor 4 to light_sensor4 and set the range between 0 to 255
 
+    set_motor(motor_spd, motor_dir);
+
     if(is_deploy) {
        //TODO: function when click 'Deploy'
        //Aims: Deploy Cubesat when click 'Deploy' by control solenoid
